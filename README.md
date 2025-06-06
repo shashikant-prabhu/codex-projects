@@ -1,2 +1,35 @@
 # codex-projects
-codex-projects
+
+This repository contains a simple Python project for converting the contents of
+text files to lowercase. The project includes a small submodule as an example of
+structuring code in subpackages.
+
+## Usage
+
+The main function `convert_file_to_lowercase` reads a file and replaces its
+content with a lowercase version.
+
+```
+from lowercase_converter import convert_file_to_lowercase
+
+convert_file_to_lowercase("path/to/file.txt")
+```
+
+The subproject exposes `count_lines` which returns the number of lines in a
+file.
+
+```
+from lowercase_converter.subproject import count_lines
+
+num = count_lines("path/to/file.txt")
+```
+
+## Running Tests
+
+Tests use `pytest`. Install the requirements and run:
+
+```
+pip install -r requirements.txt
+pytest
+```
+
