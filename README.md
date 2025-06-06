@@ -48,3 +48,11 @@ navigate the folder hierarchy using the built‑in browser. Review the duplicate
 found and confirm deletion. The tool keeps the oldest copy of each duplicate set
 and logs removals to `duplicate_cleaner.log` while reporting the freed disk
 space.
+
+### New Features
+
+* Browsing directories now supports pagination to avoid overly long lists.
+* You can limit the number of directories scanned per phase and estimate scan
+  time before running a full search.
+* Deletion history is stored in a local SQLite database located in your home
+  directory and can be viewed from the application's main page.
