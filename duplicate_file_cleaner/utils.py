@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import os
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Iterable
 
 
 def _file_hash(path: Path, chunk_size: int = 8192) -> str:
@@ -17,17 +17,31 @@ def _file_hash(path: Path, chunk_size: int = 8192) -> str:
     return hasher.hexdigest()
 
 
-def find_duplicates(directory: str) -> List[List[Path]]:
+def find_duplicates(directory: str, extensions: Iterable[str] | None = None) -> List[List[Path]]:
     """Find exact duplicate files under *directory*.
 
-    Returns a list of groups, each containing paths of duplicate files
-    sorted by modification time (oldest first).
+    Parameters
+    ----------
+    directory: str
+        Directory to search for duplicates.
+    extensions: Iterable[str] | None
+        Optional collection of file extensions to include (case-insensitive).
+
+    Returns
+    -------
+    List[List[Path]]
+        Groups of duplicate paths sorted by modification time.
     """
     base = Path(directory)
+    allowed: set[str] | None = None
+    if extensions is not None:
+        allowed = {e.lower() if e.startswith('.') else f'.{e.lower()}' for e in extensions}
     hashes: Dict[Tuple[int, str], List[Path]] = {}
     for root, _, files in os.walk(base):
         for name in files:
             path = Path(root) / name
+            if allowed is not None and path.suffix.lower() not in allowed:
+                continue
             try:
                 size = path.stat().st_size
                 digest = _file_hash(path)

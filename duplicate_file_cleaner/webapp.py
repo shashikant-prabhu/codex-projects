@@ -3,24 +3,44 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
-from typing import List
+from typing import Iterable, List
 
-from flask import Flask, redirect, render_template_string, request, url_for
+from flask import Flask, render_template_string, request, url_for
 
 from .utils import delete_files, find_duplicates
 
 app = Flask(__name__)
 LOG_FILE = Path("duplicate_cleaner.log")
 
+TYPE_MAP = {
+    "all": None,
+    "images": [".png", ".jpg", ".jpeg", ".gif", ".bmp"],
+    "videos": [".mp4", ".avi", ".mov", ".mkv"],
+    "pdf": [".pdf"],
+    "word": [".doc", ".docx"],
+}
+
 INDEX_HTML = """
 <!doctype html>
 <title>Duplicate File Cleaner</title>
 <h1>Select Directory</h1>
 <form method="post" action="{{ url_for('scan') }}">
-  <input type="text" name="directory" placeholder="Path" size="50">
+  <input type="text" name="directory" placeholder="Path" size="50" value="{{ path }}">
+  <label><input type="checkbox" name="entire" value="1"> Scan entire system</label><br>
+  <label>File types:
+    <select name="type">
+      <option value="all">All</option>
+      <option value="images">Images</option>
+      <option value="videos">Videos</option>
+      <option value="pdf">PDF</option>
+      <option value="word">Word</option>
+    </select>
+  </label><br>
   <input type="submit" value="Scan">
 </form>
+<p><a href="{{ url_for('browse') }}">Browse directories</a></p>
 """
 
 RESULT_HTML = """
@@ -60,16 +80,51 @@ DELETE_HTML = """
 <a href="{{ url_for('index') }}">Back</a>
 """
 
+BROWSE_HTML = """
+<!doctype html>
+<title>Browse</title>
+<h1>Browse Directories</h1>
+<ul>
+  {% if parent %}
+  <li><a href="{{ url_for('browse', path=parent) }}">..</a></li>
+  {% endif %}
+  {% for d in dirs %}
+  <li><a href="{{ url_for('browse', path=d) }}">{{ d }}</a></li>
+  {% endfor %}
+</ul>
+<p><a href="{{ url_for('index', path=current) }}">Select this directory</a></p>
+"""
+
 
 @app.route("/")
 def index():
-    return render_template_string(INDEX_HTML)
+    path = request.args.get("path", "")
+    return render_template_string(INDEX_HTML, path=path)
+
+
+@app.route("/browse")
+def browse():
+    path = request.args.get("path", Path.home())
+    p = Path(path)
+    try:
+        dirs = [str(d) for d in p.iterdir() if d.is_dir()]
+    except PermissionError:
+        dirs = []
+    parent = str(p.parent) if p != p.parent else None
+    return render_template_string(BROWSE_HTML, dirs=dirs, parent=parent, current=str(p))
 
 
 @app.route("/scan", methods=["POST"])
 def scan():
     directory = request.form.get("directory", "")
-    duplicates = find_duplicates(directory)
+    if request.form.get("entire"):
+        if os.name == "nt":
+            directory = os.environ.get("SystemDrive", "C:\\")
+        else:
+            directory = "/"
+    ftype = request.form.get("type", "all")
+    extensions = TYPE_MAP.get(ftype)
+    duplicates = find_duplicates(directory, extensions)
     data = json.dumps([[str(p) for p in g] for g in duplicates])
     space = sum(sum(p.stat().st_size for p in g[1:]) for g in duplicates)
     return render_template_string(RESULT_HTML, duplicates=duplicates, space=space, data=data)

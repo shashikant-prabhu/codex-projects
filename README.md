@@ -42,7 +42,9 @@ Run the application with:
 ```
 python -m duplicate_file_cleaner.webapp
 ```
-
-Enter the directory to scan, review the duplicates found, and confirm deletion.
-The tool keeps the oldest copy of each duplicate set and logs removals to
-`duplicate_cleaner.log` while reporting the freed disk space.
+Enter the directory to scan or select **Scan entire system**. You can limit the
+search to specific file types such as images, videos, PDF or Word documents and
+navigate the folder hierarchy using the built‑in browser. Review the duplicates
+found and confirm deletion. The tool keeps the oldest copy of each duplicate set
+and logs removals to `duplicate_cleaner.log` while reporting the freed disk
+space.
