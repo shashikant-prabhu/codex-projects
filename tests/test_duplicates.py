@@ -22,6 +22,16 @@ def test_find_duplicates(tmp_path):
     assert group == {"a.txt", "b.txt"}
 
 
+def test_find_duplicates_extensions(tmp_path):
+    (tmp_path / "a.jpg").write_text("img")
+    (tmp_path / "b.jpg").write_text("img")
+    (tmp_path / "c.txt").write_text("other")
+    dups = find_duplicates(str(tmp_path), extensions=[".jpg"])
+    assert len(dups) == 1
+    names = {p.name for p in dups[0]}
+    assert names == {"a.jpg", "b.jpg"}
+
+
 def test_delete_files(tmp_path):
     f1 = tmp_path / "a.txt"
     f1.write_text("hello")
