@@ -33,3 +33,16 @@ pip install -r requirements.txt
 pytest
 ```
 
+
+## Duplicate File Cleaner
+
+A Flask-based web utility is included for detecting and removing duplicate files.
+Run the application with:
+
+```
+python -m duplicate_file_cleaner.webapp
+```
+
+Enter the directory to scan, review the duplicates found, and confirm deletion.
+The tool keeps the oldest copy of each duplicate set and logs removals to
+`duplicate_cleaner.log` while reporting the freed disk space.
